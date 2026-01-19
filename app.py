@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from queries.users import users_bp
 from queries.homes import homes_bp
 from queries.electrical_item import electrical_item_bp
@@ -10,6 +11,8 @@ from queries.meter_hourly_reading import meter_hourly_reading_bp
 from queries.utility_rate import utility_rate_bp
 
 app = Flask(__name__)
+
+CORS(app)
 
 # Register all Blueprints
 app.register_blueprint(users_bp)
