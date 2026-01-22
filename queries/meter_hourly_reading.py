@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import sqlite3
 
 meter_hourly_reading_bp = Blueprint('meter_hourly_reading', __name__)
-DB_PATH = 'c:/Projects/energy_app/energy_app.db'
+DB_PATH = 'c:/Projects/energy_app/energy.db'
 
 def get_db():
 	conn = sqlite3.connect(DB_PATH)
@@ -19,6 +19,7 @@ def create_meter_hourly_reading():
 		(data['meter_id'], data['start_ts'], data['end_ts'], data['consumed_kwh'])
 	)
 	conn.commit()
+	conn.close()
 	return jsonify({'reading_id': cur.lastrowid}), 201
 
 @meter_hourly_reading_bp.route('/meter_hourly_readings/<int:reading_id>', methods=['GET'])
@@ -26,13 +27,16 @@ def get_meter_hourly_reading(reading_id):
 	conn = get_db()
 	reading = conn.execute("SELECT * FROM meter_hourly_reading WHERE reading_id = ?", (reading_id,)).fetchone()
 	if reading:
+		conn.close()
 		return dict(reading)
+	conn.close()
 	return {'error': 'Meter hourly reading not found'}, 404
 
 @meter_hourly_reading_bp.route('/meter_hourly_readings/meter/<int:meter_id>', methods=['GET'])
 def get_meter_hourly_readings_by_meter(meter_id):
 	conn = get_db()
 	readings = conn.execute("SELECT * FROM meter_hourly_reading WHERE meter_id = ?", (meter_id,)).fetchall()
+	conn.close()
 	return jsonify([dict(row) for row in readings])
 
 @meter_hourly_reading_bp.route('/meter_hourly_readings/<int:reading_id>', methods=['PUT'])
@@ -59,6 +63,7 @@ def update_meter_hourly_reading(reading_id):
 	sql = f"UPDATE meter_hourly_reading SET {', '.join(updates)} WHERE reading_id = ?"
 	conn.execute(sql, params)
 	conn.commit()
+	conn.close()
 	return {'message': 'Meter hourly reading updated'}
 
 @meter_hourly_reading_bp.route('/meter_hourly_readings/<int:reading_id>', methods=['DELETE'])
@@ -66,4 +71,5 @@ def delete_meter_hourly_reading(reading_id):
 	conn = get_db()
 	conn.execute("DELETE FROM meter_hourly_reading WHERE reading_id = ?", (reading_id,))
 	conn.commit()
+	conn.close()
 	return {'message': 'Meter hourly reading deleted'}

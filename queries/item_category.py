@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import sqlite3
 
 item_category_bp = Blueprint('item_category', __name__)
-DB_PATH = 'c:/Projects/energy_app/energy_app.db'
+DB_PATH = 'c:/Projects/energy_app/energy.db'
 
 def get_db():
 	conn = sqlite3.connect(DB_PATH)
@@ -19,6 +19,7 @@ def create_item_category():
 		(data['category_name'],)
 	)
 	conn.commit()
+	conn.close()
 	return jsonify({'category_id': cur.lastrowid}), 201
 
 @item_category_bp.route('/item_categories/<int:category_id>', methods=['GET'])
@@ -26,13 +27,16 @@ def get_item_category(category_id):
 	conn = get_db()
 	category = conn.execute("SELECT * FROM item_category WHERE category_id = ?", (category_id,)).fetchone()
 	if category:
+		conn.close()
 		return dict(category)
+	conn.close()
 	return {'error': 'Item category not found'}, 404
 
 @item_category_bp.route('/item_categories', methods=['GET'])
 def get_all_item_categories():
 	conn = get_db()
 	categories = conn.execute("SELECT * FROM item_category").fetchall()
+	conn.close()
 	return jsonify([dict(row) for row in categories])
 
 @item_category_bp.route('/item_categories/<int:category_id>', methods=['PUT'])
@@ -44,6 +48,7 @@ def update_item_category(category_id):
 		(data['category_name'], category_id)
 	)
 	conn.commit()
+	conn.close()
 	return {'message': 'Item category updated'}
 
 @item_category_bp.route('/item_categories/<int:category_id>', methods=['DELETE'])
@@ -51,4 +56,5 @@ def delete_item_category(category_id):
 	conn = get_db()
 	conn.execute("DELETE FROM item_category WHERE category_id=?", (category_id,))
 	conn.commit()
+	conn.close()
 	return {'message': 'Item category deleted'}

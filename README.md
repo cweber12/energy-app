@@ -114,3 +114,7 @@ To set up and populate the database:
 
 - Run the provided SQL script (`populate_database.sql`) against your SQLite database to create all necessary tables and relationships.
 - You can add sample data to the script or use the backend API to populate the tables.
+
+## Opening DB
+```powershell
+& "C:\Users\coled\AppData\Local\Microsoft\WinGet\Packages\SQLite.SQLite_Microsoft.Winget.Source_8wekyb3d8bbwe\sqlite3.exe" energy.db

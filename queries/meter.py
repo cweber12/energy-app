@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import sqlite3
 
 meter_bp = Blueprint('meter', __name__)
-DB_PATH = 'c:/Projects/energy_app/energy_app.db'
+DB_PATH = 'c:/Projects/energy_app/energy.db'
 
 def get_db():
 	conn = sqlite3.connect(DB_PATH)
@@ -15,10 +15,11 @@ def create_meter():
 	conn = get_db()
 	cur = conn.cursor()
 	cur.execute(
-		"INSERT INTO meter (home_id, utility_meter_number) VALUES (?, ?)",
-		(data['home_id'], data['utility_meter_number'])
+		"INSERT INTO meter (property_id, utility_meter_number) VALUES (?, ?)",
+		(data['property_id'], data['utility_meter_number'])
 	)
 	conn.commit()
+	conn.close()
 	return jsonify({'meter_id': cur.lastrowid}), 201
 
 @meter_bp.route('/meters/<int:meter_id>', methods=['GET'])
@@ -26,13 +27,16 @@ def get_meter(meter_id):
 	conn = get_db()
 	meter = conn.execute("SELECT * FROM meter WHERE meter_id = ?", (meter_id,)).fetchone()
 	if meter:
+		conn.close()
 		return dict(meter)
+	conn.close()
 	return {'error': 'Meter not found'}, 404
 
 @meter_bp.route('/meters', methods=['GET'])
 def get_all_meters():
 	conn = get_db()
 	meters = conn.execute("SELECT * FROM meter").fetchall()
+	conn.close()
 	return jsonify([dict(row) for row in meters])
 
 @meter_bp.route('/meters/<int:meter_id>', methods=['PUT'])
@@ -40,10 +44,11 @@ def update_meter(meter_id):
 	data = request.json
 	conn = get_db()
 	conn.execute(
-		"UPDATE meter SET home_id=?, utility_meter_number=? WHERE meter_id=?",
-		(data['home_id'], data['utility_meter_number'], meter_id)
+		"UPDATE meter SET property_id=?, utility_meter_number=? WHERE meter_id=?",
+		(data['property_id'], data['utility_meter_number'], meter_id)
 	)
 	conn.commit()
+	conn.close()
 	return {'message': 'Meter updated'}
 
 @meter_bp.route('/meters/<int:meter_id>', methods=['DELETE'])
@@ -51,4 +56,5 @@ def delete_meter(meter_id):
 	conn = get_db()
 	conn.execute("DELETE FROM meter WHERE meter_id=?", (meter_id,))
 	conn.commit()
+	conn.close()
 	return {'message': 'Meter deleted'}

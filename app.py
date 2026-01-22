@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from queries.users import users_bp
-from queries.homes import homes_bp
+from queries.properties import properties_bp
 from queries.electrical_item import electrical_item_bp
 from queries.item_usage_event import item_usage_event_bp
 from queries.item_category import item_category_bp
@@ -17,8 +17,8 @@ CORS(app)
 # Register all Blueprints
 app.register_blueprint(users_bp)
 print("Registered users blueprint: ", users_bp)
-app.register_blueprint(homes_bp)
-print("Registered homes blueprint: ", homes_bp)
+app.register_blueprint(properties_bp)
+print("Registered properties blueprint: ", properties_bp)
 app.register_blueprint(electrical_item_bp)
 print("Registered electrical_item blueprint: ", electrical_item_bp)
 app.register_blueprint(item_usage_event_bp)

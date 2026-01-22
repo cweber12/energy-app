@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import sqlite3
 
 utility_rate_bp = Blueprint('utility_rate', __name__)
-DB_PATH = 'c:/Projects/energy_app/energy_app.db'
+DB_PATH = 'c:/Projects/energy_app/energy.db'
 
 def get_db():
 	conn = sqlite3.connect(DB_PATH)
@@ -19,6 +19,7 @@ def create_utility_rate():
 		(data['home_id'], data['month_year'], data['bill'], data['consumed_kwh'])
 	)
 	conn.commit()
+	conn.close()
 	return jsonify({'rate_id': cur.lastrowid}), 201
 
 @utility_rate_bp.route('/utility_rates/<int:rate_id>', methods=['GET'])
@@ -26,13 +27,16 @@ def get_utility_rate(rate_id):
 	conn = get_db()
 	rate = conn.execute("SELECT * FROM monthly_utility_rate WHERE rate_id = ?", (rate_id,)).fetchone()
 	if rate:
+		conn.close()
 		return dict(rate)
+	conn.close()
 	return {'error': 'Utility rate not found'}, 404
 
 @utility_rate_bp.route('/utility_rates/home/<int:home_id>', methods=['GET'])
 def get_utility_rates_by_home(home_id):
 	conn = get_db()
 	rates = conn.execute("SELECT * FROM monthly_utility_rate WHERE home_id = ?", (home_id,)).fetchall()
+	conn.close()
 	return jsonify([dict(row) for row in rates])
 
 @utility_rate_bp.route('/utility_rates/<int:rate_id>', methods=['PUT'])
@@ -59,6 +63,7 @@ def update_utility_rate(rate_id):
 	sql = f"UPDATE monthly_utility_rate SET {', '.join(updates)} WHERE rate_id = ?"
 	conn.execute(sql, params)
 	conn.commit()
+	conn.close()
 	return {'message': 'Utility rate updated'}
 
 @utility_rate_bp.route('/utility_rates/<int:rate_id>', methods=['DELETE'])
@@ -66,4 +71,5 @@ def delete_utility_rate(rate_id):
 	conn = get_db()
 	conn.execute("DELETE FROM monthly_utility_rate WHERE rate_id = ?", (rate_id,))
 	conn.commit()
+	conn.close()
 	return {'message': 'Utility rate deleted'}
